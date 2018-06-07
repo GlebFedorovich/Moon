@@ -12,7 +12,6 @@ int_period = 0.01
 
 string = open('to 3.txt').readlines()
 m = array([[float(i) for i in string[k].split()] for k in range((len(string)))])
-print(m[0][0], m[0][1], m[0][2], m[0][3])
 
 x_moon = m[0][0]
 y_moon = m[0][1]
@@ -273,8 +272,8 @@ plt.grid()
 show()
 
 plt.title(' V(t) ', size=11)
-plot(list(m[:, 5]), list(m[:, 3] / 1000), "blue", markersize=0.1)
-plt.ylabel('Скорость, км/с ')
+plot(list(m[:, 5]), list(m[:, 3]), "blue", markersize=0.1)
+plt.ylabel('Скорость, м/с ')
 plt.xlabel('Время, с')
 plt.grid()
 show()
