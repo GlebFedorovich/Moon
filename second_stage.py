@@ -3,6 +3,9 @@ import math
 
 INPUT_FILE = 'toMoon.txt'
 output = open('earthtomoon.txt', 'w')
+output2 = open('coordinates.txt', 'w')
+output3 = open('speed.txt' , 'w')
+out = open('to 3.txt', 'w')
 gEarth = 0.00981  # ускорение на Земле
 gMoon = 0.00162  # ускорение на Луне
 rEarth = 6375  # радиус Земли
@@ -183,27 +186,24 @@ def main():
     global dryMass, mass, GM, Gm, q, q2, R, rMoon, pi
 
     f = open(INPUT_FILE, 'r')
-    x = readFloat(f)  # считывание
-    y = readFloat(f)
-    z = readFloat(f)
-    vx = readFloat(f)
-    vy = readFloat(f)
-    vz = readFloat(f)
-    mFuel = readFloat(f)  # масса топлива в РС
+    r = readFloat(f)
+    r += rEarth # считывание
+    m = readFloat(f)  # масса топлива в РС
     rvtme = RVTME()  # присваиваивание считанных значений
     rvtme.r = Vector()
     rvtme.v = Vector()
-    rvtme.r.x = x
-    rvtme.r.y = y
-    rvtme.r.z = z
-    rvtme.v.x = vx
-    rvtme.v.y = vy
-    rvtme.v.z = vz
+    rvtme.r.x = - r * math.cos(pi / 2 / math.sqrt(2))
+    rvtme.r.y = - r * math.sin(pi / 2 / math.sqrt(2))
+    rvtme.r.z = 0
+    rvtme.v.x = math.sqrt(GM / r) * math.sin(pi / 2 / math.sqrt(2))
+    rvtme.v.y = - math.sqrt(GM / r) * math.cos(pi / 2 / math.sqrt(2))
+    rvtme.v.z = 0
     rvtme.t = 0
-    rvtme.m = dryMass + mass + mFuel
+    rvtme.m = mass + m
     print("Начинаем ускорение!")
+    print(rvtme.r.x, rvtme.r.y, rvtme.r.z, rvtme.v.x, rvtme.v.y, rvtme.v.z)
     deltaV = math.sqrt(GM) * (math.sqrt(2 / Vector.abs(rvtme.r) - 2 / R) - math.sqrt(1 / Vector.abs(rvtme.r))) + \
-             0.0000118 * math.sqrt(1 / Vector.abs(rvtme.r)) * rvtme.m  # дельта скорости, при переходе с околоземной орбиты
+             0.0000069 * math.sqrt(1 / Vector.abs(rvtme.r)) * rvtme.m  # дельта скорости, при переходе с околоземной орбиты
     #  на орбиту с большой полуосью R/2
     tau = rvtme.m / q * (1 - math.exp(-deltaV / u))  # время разгона по формуле Циолковского
     rvtme.engine = q
@@ -216,6 +216,8 @@ def main():
         output.write(str(rvtme.r.x) + '\t'
                      + str(rvtme.r.y) +
                      '\n')
+        output2.write(str(Vector.abs(rvtme.r)) + '\t' + str(rvtme.t) + '\n')
+        output3.write(str(Vector.abs(rvtme.v)) + '\t' + str(rvtme.t) + '\n')
     print("m_fuel = ", rvtme.m - (dryMass + mass))
 
     # проверка топлива
@@ -261,6 +263,8 @@ def main():
         output.write(str(rvtme.r.x) + '\t'
                      + str(rvtme.r.y) +
                      '\n')
+        output2.write(str(Vector.abs(rvtme.r)) + '\t' + str(rvtme.t) + '\n')
+        output3.write(str(Vector.abs(rvtme.v)) + '\t' + str(rvtme.t) + '\n')
 
     # коррекция(для нахождения более точного времени торможения и начала торможения)
 
@@ -287,7 +291,7 @@ def main():
         testAngle = pi / 2 - Vector.angle(Vector.minus(testRvtme.r, moonPosition(testRvtme.t)),
                                           Vector.minus(testRvtme.v, moonV(testRvtme.t)))
         print(testV, " ", testAngle, " ", tStart)
-    print(" Замедление ", tau, " сек с момента ", tStart, " сек")
+    print(" Торможение ", tau, " сек с момента ", tStart, " сек")
 
     # полет без ускорения (до начала торможения(зная найденное время начала торможения))
     currentTime = rvtme.t
@@ -296,6 +300,8 @@ def main():
         output.write(str(rvtme.r.x) + '\t'
                      + str(rvtme.r.y) +
                      '\n')
+        output2.write(str(Vector.abs(rvtme.r)) + '\t' + str(rvtme.t) + '\n')
+        output3.write(str(Vector.abs(rvtme.v)) + '\t' + str(rvtme.t) + '\n')
     rvtme.engine = q2
 
     # торможение
@@ -306,6 +312,8 @@ def main():
         output.write(str(rvtme.r.x) + '\t'
                      + str(rvtme.r.y) +
                      '\n')
+        output2.write(str(Vector.abs(rvtme.r)) + '\t' + str(rvtme.t) + '\n')
+        output3.write(str(Vector.abs(rvtme.v)) + '\t' + str(rvtme.t) + '\n')
     rvtme.engine = 0
 
     print("rx :", Vector.minus(rvtme.r, moonPosition(rvtme.t)).x, "км ", "ry :",
@@ -314,18 +322,77 @@ def main():
           Vector.minus(rvtme.v, moonV(rvtme.t)).y, "км/с ", "орбита",
           (Vector.abs(Vector.minus(rvtme.r, moonPosition(rvtme.t))) - rMoon), "км ", )
 
+    orbital = Vector.abs(Vector.minus(rvtme.r, moonPosition(rvtme.t))) - rMoon
+
     print("-----------------------------------")
     print("Луна rx :", moonPosition(rvtme.t).x, "Луна ry :", moonPosition(rvtme.t).y)
+    out.write(str(rvtme.r.x) + '\t' + str(rvtme.r.y) + '\t'+ str(moonPosition(rvtme.t).x) + '\t' +
+              str(moonPosition(rvtme.t).y) +'\t'+ str(mass - rvtme.m) + '\n')
 
-    # проверка круговой орбиты
-    while rvtme.t < 490000:
+    # проверка круговой орбиты (тест)
+    a = 0
+    while rvtme.t < 500000:
         rvtme = nextRVTME(rvtme, timestep(acc(rvtme.r, rvtme.v, rvtme.t, rvtme.m, rvtme.engine)))
         i += 1
         if i % 20000 == 0:
             print(Vector.minus(rvtme.r, moonPosition(rvtme.t)).x, " ",
                   Vector.minus(rvtme.r, moonPosition(rvtme.t)).y, " ",
                   (Vector.abs(Vector.minus(rvtme.r, moonPosition(rvtme.t))) - rMoon))
+        if abs(Vector.abs(Vector.minus(rvtme.r, moonPosition(rvtme.t))) - rMoon - orbital) < 0.5:
+            a = 0
+        else:
+            a = 1
+    if a == 0:
+        print('Мы на орбите!')
 
-    print("Мы на орбите!");
 main()
 output.close()
+out.close
+
+#визуализация
+import matplotlib.pyplot as plt
+import pylab
+from numpy import *
+string = open('earthtomoon.txt').readlines()
+m = array([[float(i) for i in string[k].split()] for k in range((len(string)))])
+string1 = open('coordinates.txt').readlines()
+m1 = array([[float(j) for j in string1[l].split()] for l in range((len(string1)))])
+string2 = open('speed.txt').readlines()
+m2 = array([[float(r) for r in string2[s].split()] for s in range((len(string2)))])
+
+from matplotlib.pyplot import *
+plt.title('Траектория полета', size=15)
+plot(list(m[:, 0]), list(m[:, 1]), "-*k", markersize=0.1)
+plt.xlabel('Координата x, км')
+plt.ylabel('Координата y, км')
+plt.grid()
+show()
+
+plt.title(' Расстояние от центра Земли от времени', size=15)
+plot(list(m1[:, 1]/1000), list(m1[:, 0]), "-*k", markersize=0.1)
+plt.ylabel('Расстояние, км ')
+plt.xlabel('Время, 10^3 c')
+plt.grid()
+show()
+
+plt.title(' Cкорость от времени', size=15)
+plot(list(m2[:, 1]/1000), list(m2[:, 0]), "-*k", markersize=0.1)
+plt.ylabel('Скорость, км/с ')
+plt.xlabel('Время, 10^3 с')
+plt.grid()
+show()
+
+i=0
+while i < 460000:
+    pylab.subplot(131);
+    plt.scatter(m[i][0], m[i][1], color='black');# y(x)
+    pylab.subplot(132);
+    plt.scatter(m2[i][1]/1000, m2[i][0], color='black'); # r(t)
+    pylab.subplot(133)
+    plt.scatter(m1[i][1]/1000, m1[i][0], color='black'); # v(t)
+    i += 1000;
+    plt.pause(0.001)
+plt.pause(10)
+output.close
+output2.close
+output3.close
