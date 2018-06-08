@@ -97,7 +97,7 @@ def visualisation(pointsdots, pointshight, pointsspeed):
         plt.scatter(pointsdots[i][0] / 1000, pointsdots[i][1] / 1000, color='blue');
         i += 1;
         plt.pause(0.001)
-    plt.pause(4)
+    plt.pause(40)
 
 
 class TestBlastMethods(unittest.TestCase):
