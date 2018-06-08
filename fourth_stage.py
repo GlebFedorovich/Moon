@@ -4,19 +4,19 @@ import unittest
 import matplotlib.pyplot as plt
 import pylab
 
-R_Moon = 1738000  # радиус Луны
+R_Moon = 1738000  # Radius of Moon
 g_Moon = 1.62
-# определяем точку старта для взлета и начальные скорости
-M = 2355  # масса корабля и пилота
-m = 2355  # масса топлива на взлет
-fuel_exp = 5.1  # кг/с скорость корабля
-fuel_speed = 3050  # м/с скорость (относительная) испускания топлива
-Vx = 0  # скорость старта
-Vy = 0  # скорость посадки
+# figure out start position and initial speed
+M = 2355  # ship mass
+m = 2355  # fuel mass
+fuel_exp = 5.1  # kg/s fuel expenses speed
+fuel_speed = 3050  # m/s fuel speed
+Vx = 0  # x-velosity
+Vy = 0  # y-velosity
 
-points_of_speed = []  #  данные для построения скорости корабля от времени
-points_of_hight = []  #  данные для построения высоты орбиты корабля от времени
-points_of_coordinates = []  # данные для построения координат корабля
+points_of_speed = []  #  ship speed for visualisation
+points_of_hight = []  #  orbital hight for visualisation
+points_of_coordinates = []  # ship coordinates for visualisation
 timeall = 0
 
 
@@ -29,7 +29,7 @@ def blast_off(time, angle):
     :return: chages in coordinates, speed, fuel mass
     '''
     global x, y, Vx, Vy, m, M, points_of_speed, points_of_hight, timeall, points_of_coordinates
-    #  рассчет координат, скорости и массы оставшегося после маневра топлива
+    #  calculating coordinates, speed and fuel after basic move
     x = x + Vx * time - fuel_speed * cos(radians(angle)) * (
             (-(M + m) / fuel_exp + time) * log((m + M - fuel_exp * time) / (m + M)) - time)
     y = y + Vy * time - 0.5 * g_Moon * time ** 2 - fuel_speed * sin(radians(angle)) * (
@@ -55,22 +55,22 @@ def blast(x_start, y_start):
     timeall = 0
     x = x_start
     y = y_start
-    for i in range(1, 62):  # подготовительный вертикальный взлет
+    for i in range(1, 62):  # initial vertical blasting
         blast_off(1, 90 - i)
-    for i in range(1, 28):  # основной этап взлета
+    for i in range(1, 28):  # main blasting
         blast_off(5, 28)
-    for i in range(1, 28):  # выход на необходимую Лунную орбиту
+    for i in range(1, 28):  # corrections for circle orbit
         blast_off(8, 28 - i)
     Vres = sqrt(Vx ** 2 + Vy ** 2)
     Hres = sqrt(x ** 2 + y ** 2) - R_Moon
     visualisation(points_of_coordinates, points_of_hight, points_of_speed)
-    return (Vres, Hres, m)  #  функция выдает необходимые для дальнейших тестов параметры
+    return (Vres, Hres, m)  #  parameters for next stage
 
 
 def visualisation(pointsdots, pointshight, pointsspeed):
-    plt.ion()  # начало построения визуализации
+    plt.ion()  # start of visualistion
     fig = plt.figure(figsize=(10, 8))
-    pylab.subplot(131)
+    pylab.subplot(131)  # creating three spaces for charts
     plt.title(' Орбитальная скорость 1598 м/с', size=8)
     plt.axis([0, 500, 0, 2500])
     plt.ylabel(u'Скорость Лунного модуля, м/с ')
@@ -100,7 +100,7 @@ def visualisation(pointsdots, pointshight, pointsspeed):
     plt.pause(40)
 
 
-class TestBlastMethods(unittest.TestCase):
+class TestBlastMethods(unittest.TestCase):  # testing speed, hight and coordinates after blusting
     setup_done = False
 
     def setUp(self):
